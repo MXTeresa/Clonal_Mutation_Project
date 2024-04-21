@@ -1,0 +1,10 @@
+Clonal variant,Donor,Recipient,Donor frequency,Donor alt reads,Donor reads,Recipient frequency,Recipient alt reads,Recipient reads,Used in 0.25% analysis?,Used in 0.5% analysis?,Used in 1.0% analysis?,Used in 2.0% analysis?,Used in 3.0% analysis?,Used in 4.0% analysis?,Used in 5.0% analysis?,Used in 6.0% analysis?,Used in 7.0% analysis?
+C2509T,CoV_273,CoV_271,0.0,,,0.966681,18278.0,18908,N,N,N,N,N,Y,Y,Y,Y
+G9526T,CoV_180,CoV_197,0.0,,,0.965884,43911.0,45462,N,N,N,N,N,Y,Y,Y,Y
+C19255T,CoV_1062,CoV_218,0.0,,,0.989026,42719.0,43193,N,N,N,Y,Y,Y,Y,Y,Y
+C20457T,CoV_1057,CoV_177,0.035904,439.0,12227,0.99502,5794.0,5823,N,N,N,N,N,Y,Y,Y,Y
+C20457T,CoV_1057,CoV_1058,0.035904,439.0,12227,0.996557,10419.0,10455,N,N,N,N,N,Y,Y,Y,Y
+C20457T,CoV_1057,CoV_187,0.035904,439.0,12227,0.996188,27703.0,27809,N,N,N,N,N,Y,Y,Y,Y
+T20458C,CoV_187,CoV_1068,0.0,,,0.985856,697.0,707,N,N,N,Y,Y,Y,Y,Y,Y
+G24102C,CoV_150,CoV_162,0.00732,314.0,42899,0.998928,56862.0,56923,N,N,Y,Y,Y,Y,Y,Y,Y
+C26894T,CoV_162,CoV_161,0.0,,,0.996116,45907.0,46086,N,Y,Y,Y,Y,Y,Y,Y,Y

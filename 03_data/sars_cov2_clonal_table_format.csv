@@ -1,0 +1,10 @@
+Clonal variant,Transmission pair,Donor frequency (%),Recipient frequency (%),Used in 0.5% analysis?,Used in 3.0% analysis?,Used in 7.0% analysis?
+C2509T,CoV_273->CoV_271,0.0% ,96.7% (18278/18908 reads),N,N,Y
+G9526T,CoV_180->CoV_197,0.0% ,96.6% (43911/45462 reads),N,N,Y
+C19255T,CoV_1062->CoV_218,0.0% ,98.9% (42719/43193 reads),N,Y,Y
+C20457T,CoV_1057->CoV_177,3.6% (439/12227 reads),99.5% (5794/5823 reads),N,N,Y
+C20457T,CoV_1057->CoV_1058,3.6% (439/12227 reads),99.7% (10419/10455 reads),N,N,Y
+C20457T,CoV_1057->CoV_187,3.6% (439/12227 reads),99.6% (27703/27809 reads),N,N,Y
+T20458C,CoV_187->CoV_1068,0.0% ,98.6% (697/707 reads),N,Y,Y
+G24102C,CoV_150->CoV_162,0.7% (314/42899 reads),99.9% (56862/56923 reads),N,Y,Y
+C26894T,CoV_162->CoV_161,0.0% ,99.6% (45907/46086 reads),Y,Y,Y

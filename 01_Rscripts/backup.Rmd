@@ -1,0 +1,300 @@
+---
+title: "Backup"
+output: html_notebook
+---
+
+# 8. Expected Number of Clonal Mutations
+
+## 8.1 Derived by Bozic et al. Using a Birth-Death Model
+
+We have the formula for expected number of clonal passenger mutations from `Bozic et al., 2016` as follow:
+
+$$
+\overline{m_c} = \frac{\frac{1}{R_0} * \mu}{1-\frac{1}{R_0}}
+$$
+
+```{r}
+meanClonalBozic <- function(R0, mu) {
+  delta <- 1 / R0
+  mc <- (delta * mu) / (1 - delta)
+  return(mc)
+}
+
+meanClonalBozic.df <- function(R0_values, mu_values) {
+  # e.g. mu_values <- seq(0,0.1,by = 0.0001)
+  mean <- 1:length(mu_values) %>%
+    mclapply(function(x) {
+      1:length(R0_values) %>%
+        lapply(function(y) {
+          meanClonalBozic(R0_values[y], mu_values[x])
+        })
+    }, mc.cores = detectCores())
+
+  mcdf <- expand.grid(R0 = paste0("", R0_values), mu = paste0("", mu_values))
+  vs_slope <- c()
+
+  mcdf$mc <- unlist(mean)
+  return(mcdf)
+}
+```
+
+We can plot the mean clonal mutations calculated by the formula derived by Bozic for a set of $R_0$ and $\mu$ values in a 3D axes. 
+
+```{r}
+df_mcBozic <- meanClonalBozic.df(seq(1.01, 7.01, by = 0.01), seq(0.01, 0.11, by = 0.01))
+
+plot_ly(
+  x = ~ df_mcBozic$R0, y = ~ df_mcBozic$mu,
+  z = ~ df_mcBozic$mc, type = "mesh3d"
+) %>%
+  layout(scene = list(
+    xaxis = list(nticks = 4, title = "R0", range = c(1, 7)),
+    yaxis = list(nticks = 4, title = "mu", range = c(0, 0.1)),
+    zaxis = list(
+      type = "log", ticks = 4,
+      title = "mean # of clonal variants"
+    )
+  ))
+```
+
+
+## 8.2 Derived by Our Model
+
+We can use the following function to calculate the expected clonal mutation number with given parameter.
+
+$$
+E(Clonal)=\sum_{i=0}^{n}iP(Clonal=i)
+$$
+
+```{r}
+meanClonal <- function(n, R0, mu, maxMuGen, maxFS, maxClonal) {
+  df <- pmf.P_clonal_new(n, R0, mu, maxMuGen, maxFS, maxClonal)
+  sum <- 0
+  for (i in 1:(maxClonal + 1)) { # omit 0 to simplify the calculation process
+    sum <- sum + i * df[i + 2, 2]
+  }
+  return(sum)
+}
+
+meanClonal.df <- function(n, R0_values, mu_values, maxMuGen, maxFS, maxClonal) {
+  # e.g. mu_values <- seq(0,0.1,by = 0.0001)
+  mean <- 1:length(mu_values) %>%
+    mclapply(function(x) {
+      1:length(R0_values) %>%
+        lapply(function(y) {
+          meanClonal(n, R0_values[y], mu_values[x], maxMuGen, maxFS, maxClonal)
+        })
+    }, mc.cores = detectCores())
+
+  mcdf <- expand.grid(R0 = paste0("", R0_values), mu = paste0("", mu_values))
+  vs_slope <- c()
+
+  mcdf$mc <- unlist(mean)
+  return(mcdf)
+}
+```
+
+We can plot the mean clonal mutations calculated by our method for a set of $R_0$ and $\mu$ values in a 3D axes. 
+
+```{r, eval = FALSE}
+df_mc <- meanClonal.df(1, seq(1.1, 1.5, by = 0.01), seq(0.01, 0.1, by = 0.01), 50, 50, 5)
+
+plot_ly(
+  x = ~ df_mc$R0, y = ~ df_mc$mu,
+  z = ~ df_mc$mc, type = "mesh3d"
+) %>%
+  layout(scene = list(
+    xaxis = list(nticks = 4, title = "R0"),
+    yaxis = list(nticks = 4, title = "mu"),
+    zaxis = list(type = "log", ticks = 4, title = "mean # of clonal variants")
+  ))
+```
+
+
+# 10. Branching Process Model
+
+## 10.1 Create Offspring of One Haplotype
+
+```{r}
+CreateOffspringOfOneHaplotype <- function(n_thisHaplotype, hap_num, ngens, R0, mu_probs) {
+  p <- 1 / (R0 + 1)
+  Znplus1_thisHaplotype <- rgeom(n_thisHaplotype, p)
+  tot_Znplus1 <- sum(Znplus1_thisHaplotype)
+
+  tempZnMatrix <- c()
+  tempparentVector <- c()
+  tempmutationVector <- c()
+
+  if (tot_Znplus1 == 0) {
+    offspringSameHaplotype <- 0
+  } else {
+    haplotypeOffspring <- rmultinom(1, tot_Znplus1, mu_probs)
+    offspringSameHaplotype <- haplotypeOffspring[1]
+
+    for (i in 2:length(mu_probs)) {
+      if (haplotypeOffspring[i] > 0) {
+        n_mutations <- i - 1
+        insertMatrix <- cbind(
+          matrix(0,
+            nrow = haplotypeOffspring[i],
+            ncol = length(1:ngens)
+          ),
+          matrix(1, nrow = haplotypeOffspring[i], ncol = 1)
+        )
+        tempZnMatrix <- rbind(tempZnMatrix, insertMatrix)
+        tempparentVector <- rbind(
+          tempparentVector,
+          matrix(hap_num,
+            nrow = haplotypeOffspring[i],
+            ncol = 1
+          )
+        )
+        tempmutationVector <- rbind(
+          tempmutationVector,
+          matrix(n_mutations,
+            nrow = haplotypeOffspring[i],
+            ncol = 1
+          )
+        )
+      }
+    }
+  }
+
+  list <- list(offspringSameHaplotype, tempZnMatrix, tempparentVector, tempmutationVector)
+  names(list) <- c("offspringSameHaplotype", "tempZnMatrix", "tempparentVector", "tempmutationVector")
+  return(list)
+}
+```
+
+## 10.2 Get Mutation List Haplotypes
+
+```{r}
+GetMutationListHaplotypes <- function(nhaplotypes_final, parentVector, mutationVector) {
+  mutationList <- c()
+  maxMut <- 0
+  for (i in 2:nhaplotypes_final) {
+    nMuts <- mutationVector[i]
+    extraMuts <- maxMut + (1:nMuts)
+    mutationList[i] <- c(mutationList[parentVector[i]], extraMuts)
+    maxMut <- max(extraMuts)
+  }
+  list <- list(mutationList, maxMut)
+  names(list) <- c("mutationList", "maxMut")
+  return(list)
+}
+```
+
+## 10.3 Calculate Clonal Mutations
+
+```{r}
+CalculateClonalMutations <- function(finalPopSizes, nhaplotypes_final, mutationList, maxMut) {
+  totFinalPopSize <- sum(finalPopSizes)
+  mutFinalPopSizes <- matrix(0, nrow = maxMut, ncol = 1)
+  for (i in 1:nhaplotypes_final) {
+    this_list <- mutationList[i]
+    k <- this_list
+    mutFinalPopSizes[k, 1] <- mutFinalPopSizes[k, 1] + finalPopSizes[i]
+  }
+  locs_clonal <- which(mutFinalPopSizes == totFinalPopSize)
+  nclonal <- length(locs_clonal)
+  return(nclonal)
+}
+```
+
+## 10.4 Simulate One Realization of Branching Process
+
+```{r}
+SimulateOneRealization_BranchingProcess <- function(n, R0, mu, Nmax) {
+  p <- 1 / (R0 + 1)
+  Zn <- data.frame(n)
+  parentVector <- c(0)
+  mutationVector <- c(0)
+  bool_extinct <- 0
+
+  max_mutations <- max(5, qpois(0.99, mu))
+  mu_probs <- dpois(0:max_mutations, mu)
+  mu_probs[length(mu_probs)] <- mu_probs[length(mu_probs)] + (1 - sum(mu_probs))
+
+  while (TRUE) {
+    nTotHaplotypes <- dim(Zn)[1]
+    ngens <- dim(Zn)[2]
+    Zn[1:nTotHaplotypes, ngens + 1] <- 0
+
+    tempZnMatrix <- c()
+    tempparentVector <- c()
+    tempmutationVector <- c()
+
+    for (i in 1:nTotHaplotypes) {
+      list <- CreateOffspringOfOneHaplotype(Zn[i, ngens], i, ngens, R0, mu_probs)
+      names(list) <- c(
+        "offspringSameHaplotype", "tempZnMatrix_thisHaplo",
+        "tempparentVector_thisHaplo", "tempmutationVector_thisHaplo"
+      )
+      Zn[i, ngens + 1] <- as.numeric(list["offspringSameHaplotype"])
+      tempZnMatrix <- rbind(tempZnMatrix, list[["tempZnMatrix_thisHaplo"]])
+      tempparentVector <- rbind(tempparentVector, list[["tempparentVector_thisHaplo"]])
+      tempmutationVector <- rbind(
+        tempmutationVector,
+        list[["tempmutationVector_thisHaplo"]]
+      )
+    }
+
+    Zn <- data.frame(rbind(t(matrix(Zn)), tempZnMatrix))
+    parentVector <- rbind(parentVector, tempparentVector)
+    mutationVector <- rbind(mutationVector, tempmutationVector)
+
+    tot_Zn <- sum(as.numeric(Zn[, ngens + 1]))
+
+    if (tot_Zn > Nmax) {
+      break
+    }
+    if (tot_Zn == 0) {
+      bool_extinct <- 1
+      break
+    }
+  }
+
+  nhaplotypes <- dim(Zn)[1]
+  ngens <- dim(Zn)[2]
+
+  list <- list(nhaplotypes, ngens, Zn, parentVector, mutationVector, bool_extinct)
+  names(list) <- c("nhaplotypes", "ngens", "Zn", "parentVector", "mutationVector", "bool_extinct")
+  return(list)
+}
+```
+
+## 10.5 Simulate Branching Process Model
+
+```{r}
+branchingProcess <- function(n_stoch_real, bool_onlySuccessful, n, R0, mu, Nmax) {
+  results_nclonal <- c()
+  for (i in 0:n_stoch_real) {
+    simOneList <- SimulateOneRealization_BranchingProcess(n, R0, mu, Nmax)
+    names(simOneList) <- c(
+      "nhaplotypes_final", "ngens_final", "Zn",
+      "parentVector", "mutationVector", "bool_extinct"
+    )
+    if (bool_extinct == 1) {
+      if (bool_onlySuccessful == 0) {
+        i <- i + 1
+        results_nclonal[i] <- c(0)
+      }
+    } else {
+      i <- i + 1
+      mutList <- GetMutationListHaplotypes(
+        simOneList[["nhaplotypes_final"]],
+        simOneList[["parentVector"]],
+        simOneList[["mutationVector"]]
+      )
+      nclonal <- CalculateClonalMutations(
+        Zn[, simOneList[["ngens_final"]]],
+        simOneList[["nhaplotypes_final"]],
+        mutList[["mutationList"]],
+        mutList[["maxMut"]]
+      )
+      results_nclonal[i] <- nclonal
+    }
+  }
+  return(results_nclonal)
+}
+```
