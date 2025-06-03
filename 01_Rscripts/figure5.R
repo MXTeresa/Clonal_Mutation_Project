@@ -37,15 +37,17 @@ k <- 0.5
 listClonal_flu <- list_clonal(n_values, R0_flu, mu_values, maxMuGen, maxFS, maxClonal)
 listClonal_sars <- list_clonal(n_values, R0_sars, mu_values, maxMuGen, maxFS, maxClonal)
 
-df_heatmap_flu_nb <- LL_meanNb_nb.df(flu, listClonal_flu, seq(0.001, 0.501, by = 0.01), R0_flu, mu_values, maxMuGen, maxFS, maxIni, k)
+#df_heatmap_flu_nb <- LL_meanNb_nb.df(flu, listClonal_flu, seq(0.001, 0.501, by = 0.01), R0_flu, mu_values, maxMuGen, maxFS, maxIni, k)
 #df_heatmap_flu_prop <- LL_prop.df(flu, listClonal_flu, prop_values, R0_flu, mu_values, maxMuGen, maxFS, maxIni)
 
+df_heatmap_flu_pois <- read.csv("03_data/df_heatmap_flu_pois.csv")[, -1]
 df_heatmap_flu_nb <- read.csv("03_data/df_heatmap_flu_nb.csv")[, -1]
 df_heatmap_flu_prop <- read.csv("03_data/df_heatmap_flu_prop.csv")[, -1]
 
-df_heatmap_sars_nb <- LL_meanNb_nb.df(sars, listClonal_sars, seq(0.001, 6.001, by = 0.1), R0_sars, mu_values, maxMuGen, maxFS, maxIni, k)
+#df_heatmap_sars_nb <- LL_meanNb_nb.df(sars, listClonal_sars, seq(0.001, 6.001, by = 0.1), R0_sars, mu_values, maxMuGen, maxFS, maxIni, k)
 #df_heatmap_sars_prop <- LL_prop.df(sars, listClonal_sars, prop_values, R0_sars, mu_values, maxMuGen, maxFS, maxIni)
 
+df_heatmap_sars_pois <- read.csv("03_data/df_heatmap_sars_pois.csv")[, -1]
 df_heatmap_sars_nb <- read.csv("03_data/df_heatmap_sars_nb.csv")[, -1]
 df_heatmap_sars_prop <- read.csv("03_data/df_heatmap_sars_prop.csv")[, -1]
 

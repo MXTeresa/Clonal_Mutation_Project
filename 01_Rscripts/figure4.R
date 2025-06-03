@@ -117,7 +117,12 @@ meanNb_heat_flu <- ggplot(df_heatmap_flu_fin) +
   theme(legend.position = "right", legend.direction = "vertical",
         legend.margin = margin(grid::unit(0, "cm")),
         legend.key.height = grid::unit(0.8, "cm"),
-        legend.key.width = grid::unit(0.2, "cm")) 
+        legend.key.width = grid::unit(0.2, "cm")) +
+  geom_hline(aes(yintercept = mu_flu_hat), linetype = "dashed", color = "red", linewidth = 1) +
+  geom_vline(aes(xintercept = 1), linetype = "dashed", color = "red", linewidth = 1) +
+  annotate("text", x = 3, y = 1.8, label = "mu==1.55", parse = TRUE, color = "red") +
+  annotate("text", x = 1.8, y = 0.5, label = "bar(Nu)[italic(b)] %->% 1", parse = TRUE, color = "red") +
+  labs(title = "influenza A virus")
 
 ## 6.2 Sars ====
 clonal_distri_sars <- ggplot(melt_distri_sars, aes(x = ClonalMu, y = prob)) +
@@ -166,7 +171,12 @@ meanNb_heat_sars <- ggplot(df_heatmap_sars_fin) +
   theme(legend.position = "right", legend.direction = "vertical",
         legend.margin = margin(grid::unit(0, "cm")),
         legend.key.height = grid::unit(0.8, "cm"),
-        legend.key.width = grid::unit(0.2, "cm")) 
+        legend.key.width = grid::unit(0.2, "cm")) +
+  geom_hline(aes(yintercept = mu_sars_hat), linetype = "dashed", color = "red", linewidth = 1) +
+  geom_vline(aes(xintercept = 1), linetype = "dashed", color = "red", linewidth = 1) +
+  annotate("text", x = 3.2, y = 0.8, label = "mu==0.51", parse = TRUE, color = "red") +
+  annotate("text", x = 1.8, y = 2.4, label = "bar(Nu)[italic(b)] %->% 1", parse = TRUE, color = "red") +
+  labs(title = "SARS-CoV-2")
 
 # 7. Put graphs together ====
 figure4 <- clonal_distri_flu + lambda_heat_flu + meanN_heat_flu + meanNb_heat_flu + 
@@ -175,4 +185,3 @@ figure4 <- clonal_distri_flu + lambda_heat_flu + meanN_heat_flu + meanNb_heat_fl
   plot_annotation(tag_levels = "A")
 
 ggsave(figure4, file = "figure4.pdf", path = "02_plots", width = 10, height = 5)
-
